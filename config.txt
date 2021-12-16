@@ -1,2 +1,0 @@
-ADMIN_EMAIL=XXXXX@gmail.com
-PORT=465

@@ -1,20 +1,14 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # This script contains re-usable utilities
 
 __author__ = 'Nadim Rahman'
 
 import pandas as pd
+import yaml
 
 class Config:
     """Configuration"""
-
-    def validate(self):
-        """
-        Validating any configuration settings
-        :return:
-        """
-        pass
 
     @staticmethod
     def read_config():
@@ -22,11 +16,8 @@ class Config:
         Read in the configuration file
         :return: A dictionary referring to tool configuration
         """
-        configuration = {}
-        with open("config.txt") as f:
-            for line in f:
-                (key, val) = line.rstrip().split("=")           # Split the string on the "=" to define key, value pairs in dictionary items
-                configuration[key] = val
+        with open("config.yaml") as f:
+            configuration = yaml.safe_load(f)
         return configuration
 
 
@@ -44,7 +35,7 @@ class Utilities:
             spreadsheet = pd.ExcelFile(spreadsheet_file)
             sheet_to_df_map = {}
             for sheet_name in spreadsheet.sheet_names:          # Retrieve all data frames in different sheets and return a dictionary
-                sheet_df = spreadsheet.parse(sheet_name, header=0, index_col=False).to_dict()
+                sheet_df = spreadsheet.parse(sheet_name, header=0, index_col=False, skiprows=2).to_dict()
                 sheet_to_df_map[sheet_name] = sheet_df
             return sheet_to_df_map
         elif spreadsheet_file.endswith(".csv"):
@@ -53,5 +44,3 @@ class Utilities:
         elif spreadsheet_file.endswith(".txt") or spreadsheet_file.endswith(".tsv"):
             spreadsheet = pd.read_csv(spreadsheet_file, header=0, sep="\t", index_col=False)
             return spreadsheet
-
-

@@ -4,24 +4,45 @@
 
 __author__ = 'Nadim Rahman'
 
-import smtplib, ssl
+import argparse, getpass, smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from getpass import getpass
-from utils import Utilities
+from utils import Config, Utilities
+
+
+def get_args():
+    """
+    Handle script arguments
+    :return: Script arguments
+    """
+    parser = argparse.ArgumentParser(prog='main.py', formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     epilog="""
+        + =========================================================== +
+        |  ENA Data Hubs Setup: main.py                               |
+        |  Python tool to handle assignment and set up of a data      |
+        |  hub.                                                       |
+        + =========================================================== +
+        """)
+    parser.add_argument('-s', '--spreadsheet', help='Input spreadsheet for the data hub assignment', type=str, required=True)
+    parser.add_argument('-d', '--datahub_name', help='Name of data hub to be assigned', type=str, required=True)
+    parser.add_argument('-p', '--datahub_password', help='Password for data hub to be assigned', type=str, required=True)
+    args = parser.parse_args()
+    return args
 
 
 class PrepareEmails:
     """ Prepare the email(s) to be sent."""
 
-    def __init__(self, contact_info):
+    def __init__(self, contact_info, datahub_name, datahub_password):
         """
         Initialisation of class
         :param contact_info: Dictionary of contact information for data providers and consumers
         """
         self.contact_info = contact_info
-        self.message = MIMEMultipart("alternate")       # Initiating message object to be sent
-
+        self.dh = datahub_name
+        self.pw = datahub_password
+        self.message = MIMEMultipart("alternate")  # Initiating message object to be sent
 
     def obtain_all_emails(self):
         """
@@ -29,34 +50,38 @@ class PrepareEmails:
         :return: List of unique email addresses
         """
         self.emails = []
-        for type in self.contact_info.values():
-            sheet_emails = list(type['Email'].values())     # List of all emails within a particular sheet
+        for sheet in self.contact_info.values():
+            try:
+                sheet_emails = list(sheet['Email'].values())  # List of all emails within a particular sheet
+            except KeyError:
+                continue        # If the sheet doesn't contain an 'Email' field, then skip
             for sheet_email in sheet_emails:
-                if sheet_email not in self.emails:      # Add the email to the list if it doesn't already exist
+                if sheet_email not in self.emails:  # Add the email to the list if it doesn't already exist
                     self.emails.append(sheet_email)
-
 
     def datahub_credentials(self):
         """
         Adding to message object for data hub credentials email
         :return: Message object to send data hub credentials with
         """
-        self.message['Subject'] = "[ENA Data Hubs] Credentials"
+        self.message['Subject'] = "[ENA Data Hubs] {}: Credentials".format(self.dh)
         text = """\
-Username: []
-Password: []
-        
+Username: {}
+Password: {}
+
+Please keep these credentials safe and do NOT share with others.
 European Nucleotide Archive (ENA)
-EMBL-EBI"""
+EMBL-EBI""".format(self.dh, self.pw)
         html = """\
             <html>
                 <body>
-                    <p>Username: []<br>
-                    Password: []</p><br>
+                    <p>Username: {}<br>
+                    Password: {}</p><br>
+                    <i><p style="font-size:12px; font-color"#6b6b6b">Please keep these credentials safe and do <b>NOT</b> share with others.</p>
                     <p style="font-size:12px; font-color:#6b6b6b"><a href="https://www.ebi.ac.uk/ena/browser/home">European Nucleotide Archive (ENA)</a><br>
-                    EMBL-EBI</p>
+                    EMBL-EBI</p></i>
                 </body>
-            </html>"""
+            </html>""".format(self.dh, self.pw)
 
         # Turn these into plain/html MIMEText objects
         plainemail = MIMEText(text, "plain")
@@ -66,7 +91,6 @@ EMBL-EBI"""
         # The email client will try to render the last part first
         self.message.attach(plainemail)
         self.message.attach(htmlemail)
-
 
     def prepare_email(self):
         """
@@ -94,7 +118,6 @@ class SendEmails:
         self.sender_email = sender_email
         self.port = port
 
-
     def send_email(self):
         """
         Send email using initialised parameters
@@ -103,7 +126,7 @@ class SendEmails:
 
         # Create secure connection with server and send email
         context = ssl.create_default_context()
-        password = getpass()
+        password = getpass('Email client password: ')
 
         with smtplib.SMTP_SSL("smtp.gmail.com", self.port, context=context) as server:
             server.login(self.sender_email, password)
@@ -114,14 +137,14 @@ class SendEmails:
                 )
 
 
+if __name__ == '__main__':
+    args = get_args()
+    configuration = Config.read_config()
 
-def emailer(args, configuration):
-    consumers_providers = Utilities.read_spreadsheet(args.spreadsheet)      # Read in the consumers and providers
+    setup_spreadsheet = Utilities.read_spreadsheet(args.spreadsheet)
 
-    # Prepare the email message and obtain a list of contacts to send the email to
-    email_prep = PrepareEmails(consumers_providers)
+    email_prep = PrepareEmails(setup_spreadsheet, args.datahub_name, args.datahub_password)
     emails, message = email_prep.prepare_email()
 
-    # Send the email message
-    email_send = SendEmails(emails, message, configuration['ADMIN_EMAIL'], configuration['PORT'])
+    email_send = SendEmails(emails, message, configuration['ADMIN_EMAIL'], configuration['EMAIL_PORT'])
     email_send.send_email()

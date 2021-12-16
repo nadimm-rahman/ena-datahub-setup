@@ -9,6 +9,6 @@ This tool carries out data hub set up at the European Nucleotide Archive (ENA). 
 
 ## Usage
 
-To invoke the tool, use `main.py` and provide a completed spreadsheet of data providers and consumers. A template spreadsheet has been included in this repository, which can be adapted. Ensure that you have edited `config.txt` to include an admin or sender email address.
+To invoke the tool, use `emailer.py` and provide a completed spreadsheet of data providers and consumers. A template spreadsheet has been included in this repository, which can be adapted. Ensure that you have edited `config.yaml` to include an admin or sender email address.
 
-`python main.py -s DH_Providers_Consumers.xlsx`
+`python emailer.py -s DH_Providers_Consumers.xlsx -d <DATA HUB NAME> -p <DATA HUB PASSWORD>`
