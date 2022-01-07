@@ -8,7 +8,21 @@ This tool carries out data hub set up at the European Nucleotide Archive (ENA). 
 - Requests analysis and visualisation tools to be associated with the data hub.
 
 ## Usage
+Prior to running scripts, ensure the following have been completed:
+1. Complete the spreadsheet for data hub setup. This includes providing information regarding the data hub coordinator, the data hub, and listing data providers and data consumers. A template spreadsheet has been included in the repository `DH_Providers_Consumers.xlsx`.
+2. Include configuration information in `config.yaml`, e.g. `ADMIN_EMAIL: my_email@gmail.com`.
 
-To invoke the tool, use `emailer.py` and provide a completed spreadsheet of data providers and consumers. A template spreadsheet has been included in this repository, which can be adapted. Ensure that you have edited `config.yaml` to include an admin or sender email address.
+
+To assign a data hub, use `assigner.py`, providing a completed spreadsheet, with the unassigned data hub name and credentials.
+
+`python assigner.py -s DH_Providers_Consumers.xlsx -d <DATA HUB NAME> -p <DATA HUB PASSWORD>`
+
+Once a data hub has been assigned, to send emails to a list of providers and consumers, use `emailer.py` and provide a completed spreadsheet of data providers and consumers.
 
 `python emailer.py -s DH_Providers_Consumers.xlsx -d <DATA HUB NAME> -p <DATA HUB PASSWORD>`
+
+## Requirements
+To run this tool, there are several requirements:
+- cx_Oracle (https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html)
+- Python 3.7+ (https://www.python.org/downloads/)
+- Python Pandas (https://pandas.pydata.org/docs/getting_started/install.html)
