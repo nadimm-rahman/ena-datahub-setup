@@ -11,9 +11,10 @@ This tool carries out data hub set up at the European Nucleotide Archive (ENA). 
 Prior to running scripts, ensure the following have been completed:
 1. Complete the spreadsheet for data hub setup. This includes providing information regarding the data hub coordinator, the data hub, and listing data providers and data consumers. A template spreadsheet has been included in the repository `DH_Providers_Consumers.xlsx`.
 2. Include configuration information in `config.yaml`, e.g. `ADMIN_EMAIL: my_email@gmail.com`.
+3. Once cx_Oracle has been installed, define the folder path at the top of `assigner.py` or save as an environment variable - `ORACLE_CLIENT_LIB`.
 
 
-To assign a data hub, use `assigner.py`, providing a completed spreadsheet, with the unassigned data hub name and credentials.
+To assign a data hub and link Webin account(s) to it, use `assigner.py`, providing a completed spreadsheet, with the unassigned data hub name and credentials.
 
 `python assigner.py -s DH_Providers_Consumers.xlsx -d <DATA HUB NAME> -p <DATA HUB PASSWORD>`
 
